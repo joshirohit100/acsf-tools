@@ -71,24 +71,18 @@ class MeoToolsDatabaseDump {
 
     // Look for list of sites and loop over it.
     if ($sites = $this->getMultiSiteSites()) {
-      $arguments = [];
-      $command = 'sql-dump';
-
       foreach ($sites as $details) {
         $domain = $details['domains'][0];
 
         $command_options = [];
-        $command_options['result-file'] = $backup_result_folder . '/' . $details['machine_name'] . '.sql';
+        $result_file = $backup_result_folder . '/' . $details['machine_name'] . '.sql';
+        $command_options['result-file'] = $result_file;
         $command_options['uri'] = $domain;
 
-        $this->io->writeln("=> Taking database dump of {$details['machine_name']} ...");
-        // Remove empty values from array.
-        $command_options = array_filter($command_options);
         $process_args = [
           'dr',
-          'drush',
-          $command,
-          '--uri=' . $domain,
+          'sql-dump',
+//          '--uri=' . $domain, // URI option no longer available and thus need the database and target key information
           '--result-file=' . $command_options['result-file'],
         ];
 
@@ -96,6 +90,7 @@ class MeoToolsDatabaseDump {
           $process_args[] = '--gzip';
         }
 
+        $this->io->writeln("=> Taking database dump of {$details['machine_name']} ...");
         $process = new Process($process_args);
         $process->setTimeout(NULL); // Database dumps may take a long time.
 
@@ -103,14 +98,15 @@ class MeoToolsDatabaseDump {
         if ($exit_code !== 0) {
           // Throw an exception with details about the failed process.
           $this->io->error("The command failed to execute for the site {$details['machine_name']}.");
+          $this->io->writeln($process->getErrorOutput());
           continue;
         }
 
         // Log success message.
-        if (isset($options['gzip']) && $options['gzip']) {
-          $options['result-file'] .= '.gz';
+        if ($gzip) {
+          $result_file .= '.gz';
         }
-        $this->io->success("Database dump of {$details['machine_name']} site successfully saved in {$options['result-file']}.");
+        $this->io->success("Database dump of {$details['machine_name']} site successfully saved in {$result_file}.");
       }
     }
 

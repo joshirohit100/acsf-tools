@@ -26,33 +26,33 @@ class MeoToolsSiteList {
 
   public const string NAME = 'meo-tools:list';
 
+  private SymfonyStyle $io;
+
   public function __invoke(
       InputInterface $input,
       OutputInterface $output,
       #[Option(description: 'The list of fields to display (comma separated list).')]
-      string $fields,
+      string $fields = '',
   ): int {
-    $io = new SymfonyStyle($input, $output);
+    $this->io = new SymfonyStyle($input, $output);
 
     // Look for list of sites and loop over it.
-    if ($sites = $this->getSites()) {
+    if ($sites = $this->getMultiSiteSites()) {
       $options = $input->getOptions();
       $fields = $options['fields'];
-      if (isset($fields)) {
+      if (!empty($fields)) {
         $expected_attributes = array_flip(explode(',', $fields));
       }
 
-      foreach ($sites as $name => $details) {
-        $prefix = $details['machine_name'];
-        $io->writeln($prefix);
+      foreach ($sites as $site) {
+        $prefix = $site['machine_name'];
+        $this->io->writeln($prefix);
 
-        // Filter attributes.
         if (isset($expected_attributes)) {
-          $details = array_intersect_key($details, $expected_attributes);
+          $site = array_intersect_key($site, $expected_attributes);
         }
 
-        // Print attributes.
-        $this->recursivePrint($details, 2);
+        $this->recursivePrint($site, 2);
       }
     }
 

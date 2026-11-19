@@ -7,15 +7,6 @@ namespace Acquia\MeoTools\Command;
 trait MeoToolsUtilsTrait {
 
   /**
-   * Utility function to retrieve the list of sites.
-   *
-   * @return array|bool
-	 */
-  public function getSites(): array|bool {
-    return $this->getMultiSiteSites();
-  }
-
-  /**
    * Utility function to retrieve a list of sites in a multi-site Drupal installation.
    *
    * @return array
@@ -75,16 +66,15 @@ trait MeoToolsUtilsTrait {
    * @param $variable
    * @param $indent
    */
-  public function recursivePrint($variable, $indent) {
-
+  private function recursivePrint($variable, $indent) {
     $tab = str_repeat(' ', $indent);
 
     foreach ($variable as $key => $value) {
       if (!is_array($value)) {
-        $io->writeln($tab . $key . ': ' . $value);
+        $this->io->writeln($tab . $key . ': ' . $value);
       }
       else {
-        $io->writeln($tab . $key . ':');
+        $this->io->writeln($tab . $key . ':');
         $this->recursivePrint($value, $indent + 2);
       }
     }
